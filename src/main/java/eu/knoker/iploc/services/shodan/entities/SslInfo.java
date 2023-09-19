@@ -1,4 +1,4 @@
-package eu.knoker.iploc.entities.shodan;
+package eu.knoker.iploc.services.shodan.entities;
 
 
 import lombok.*;

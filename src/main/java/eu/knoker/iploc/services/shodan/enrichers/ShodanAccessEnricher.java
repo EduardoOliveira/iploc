@@ -15,7 +15,7 @@ import retrofit2.HttpException;
 
 @Component
 @Slf4j
-public class AccessEnricher {
+public class ShodanAccessEnricher {
 
     @Value("${shodan.apiKey}")
     private ShodanRestApi api;
@@ -31,8 +31,8 @@ public class AccessEnricher {
     }
 
     public Mono<Access> enrich (Access access){
-        if (access.getShodan().getEnrichmentStatus().equals(EnrichmentStatus.ENRICHED) &&
-                access.getShodan().getLastUpdated() + timeOut > System.currentTimeMillis()) {
+        if (access.getShodanData().getEnrichmentStatus().equals(EnrichmentStatus.ENRICHED) &&
+                access.getShodanData().getLastUpdated() + timeOut > System.currentTimeMillis()) {
             log.info("Shodan: Skipping {}", access.getIp());
             return Mono.just(access);
         }
@@ -41,8 +41,8 @@ public class AccessEnricher {
         return Mono.fromSupplier(() -> {
             try {
                 Host host = getIpInfo(access.getIp()).blockingFirst();
-                access.getShodan().update(host);
-                access.getShodan().setEnrichmentStatus(EnrichmentStatus.ENRICHED);
+                access.getShodanData().update(host);
+                access.getShodanData().setEnrichmentStatus(EnrichmentStatus.ENRICHED);
                 if (host.getLatitude() != 0 || host.getLongitude() != 0) {
                     access.setLatitude(host.getLatitude());
                     access.setLongitude(host.getLongitude());
@@ -50,12 +50,12 @@ public class AccessEnricher {
             } catch (Exception e) {
                 if (((HttpException) e).code() == 404) {
                     log.info("Shodan: IP Not found {}", access.getIp());
-                    access.getShodan().setEnrichmentStatus(EnrichmentStatus.ENRICHMENT_MISSING);
+                    access.getShodanData().setEnrichmentStatus(EnrichmentStatus.ENRICHMENT_MISSING);
                 } else {
                     e.printStackTrace();
-                    access.getShodan().setEnrichmentStatus(EnrichmentStatus.ENRICHMENT_FAILED);
+                    access.getShodanData().setEnrichmentStatus(EnrichmentStatus.ENRICHMENT_FAILED);
                 }
-                access.getShodan().setLastUpdated(System.currentTimeMillis());
+                access.getShodanData().setLastUpdated(System.currentTimeMillis());
             }
             return access;
         }).flatMap(repository::updateShodan);

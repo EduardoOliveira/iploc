@@ -13,7 +13,7 @@ import java.util.Objects;
 
 @Component
 @Slf4j
-public class AccessEnricher {
+public class NominatimAccessEnricher {
 
     @Autowired
     private LocationRepository repository;
@@ -46,8 +46,8 @@ public class AccessEnricher {
     private boolean shouldEnrich(Access access) {
         return access.getLatitude() == 0L && access.getLongitude() == 0L
                 && (
-                access.getShodan().getEnrichmentStatus() == EnrichmentStatus.ENRICHMENT_FAILED
-                        || access.getShodan().getEnrichmentStatus() == EnrichmentStatus.ENRICHMENT_MISSING
+                access.getShodanData().getEnrichmentStatus() == EnrichmentStatus.ENRICHMENT_FAILED
+                        || access.getShodanData().getEnrichmentStatus() == EnrichmentStatus.ENRICHMENT_MISSING
         )
                 && access.getAbuseIPDBData().getEnrichmentStatus() == EnrichmentStatus.ENRICHED
                 && !Objects.equals(access.getAbuseIPDBData().getCountryCode(), "");

@@ -16,7 +16,7 @@ import java.util.Optional;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class Shodan {
+public class ShodanData {
     private String ip;
     private EnrichmentStatus enrichmentStatus = EnrichmentStatus.NOT_ENRICHED;
 
@@ -59,7 +59,7 @@ public class Shodan {
         this.totalVulnerabilities = vulnerabilities.size();
     }
 
-    public Shodan(Host host) {
+    public ShodanData(Host host) {
         this.latitude = host.getLatitude();
         this.longitude = host.getLongitude();
         this.ports = host.getPorts();

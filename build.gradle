@@ -23,15 +23,23 @@ repositories {
 
 dependencies {
     implementation 'com.fooock:jshodan:0.4.9'
-    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
-    implementation 'org.hibernate.orm:hibernate-community-dialects'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+
+    implementation 'de.grundid.opendatalab:geojson-jackson:1.14'
+
+    implementation 'org.javatuples:javatuples:1.2'
+
+    implementation 'org.springframework.data:spring-data-mongodb'
+    implementation 'org.mongodb:mongodb-driver-reactivestreams'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
 }
 
 

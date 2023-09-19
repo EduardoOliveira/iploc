@@ -1,53 +1,37 @@
 package eu.knoker.iploc.entities;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.ReadOnlyProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import eu.knoker.iploc.services.aipdb.entities.AbuseIPDBData;
+import eu.knoker.iploc.services.aipdb.jsonviews.AbuseIPDBDataViews;
+import eu.knoker.iploc.services.shodan.entities.ShodanData;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
-@Entity
+@Document
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Access {
-
-    @Getter
-    @Setter
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Getter
-    @Column(nullable = false,unique = true)
+    private String id;
     private String ip;
-
-    @Getter
-    @ReadOnlyProperty
-    @JsonSetter(nulls = Nulls.SKIP)
-    private Long count = 0L;
-
-    @Getter
-    @JsonSetter(nulls = Nulls.SKIP)
+    private Map<Integer,Long> accessedPorts = new HashMap<>();
+    private Double latitude = 0D;
+    private Double longitude = 0D;
+    private Long accessCount = 0L;
     private Long lastSeen = 0L;
-
-    @Getter
-    @Setter
-    @OneToOne(cascade = CascadeType.ALL)
     private ShodanData shodanData = new ShodanData();
 
-    @Getter
-    @Setter
-    @OneToOne(cascade = CascadeType.ALL)
+    @JsonView(AbuseIPDBDataViews.Base.class)
     private AbuseIPDBData abuseIPDBData = new AbuseIPDBData();
-
-    public void setIp(String ip) {
-        this.ip = ip;
-        if (shodanData != null && shodanData.getIp() == null) {
-            shodanData.setIp(ip);
-            abuseIPDBData.setIp(ip);
-        }
-    }
 }
 
 

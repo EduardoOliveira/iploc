@@ -5,7 +5,7 @@ import eu.knoker.iploc.entities.EnrichmentStatus;
 import eu.knoker.iploc.processors.ReportLocationProcessor;
 import eu.knoker.iploc.repositories.AccessRepository;
 import eu.knoker.iploc.services.aipdb.entities.AbuseIPDBData;
-import eu.knoker.iploc.services.aipdb.entities.Report;
+import eu.knoker.iploc.services.aipdb.entities.ReportSummary;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +20,11 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 @Component
 @Slf4j
-public class AccessEnricher {
+public class AIPDBAccessEnricher {
 
     @Value("${abuseipdb.apiKey}")
     private String apiKey;
@@ -70,20 +71,32 @@ public class AccessEnricher {
                 .uri(url)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<HashMap<String, AbuseIPDBData>>() {
+                }).onErrorResume(throwable -> {
+                    throwable.printStackTrace();
+                    return Mono.empty();
                 })
                 .map(response -> {
                     AbuseIPDBData data = response.get("data");
                     data.setLastUpdated(System.currentTimeMillis());
                     data.setIp(access.getIp());
-                    data.getReports().stream().map(Report::getReporterCountryCode).forEach(c -> data.getReportedIn().add(c));
+                    data.getReports().forEach(r -> {
+                        String cc = r.getReporterCountryCode().toLowerCase();
+                        Optional.ofNullable(data.getReportSummary().get(cc))
+                                .or(() -> {
+                                    ReportSummary rs = new ReportSummary(cc);
+                                    data.getReportSummary().put(cc, rs);
+                                    return Optional.of(rs);
+                                }).ifPresent(rs -> {
+                                    rs.incrementTotalReports();
+                                    rs.updateLastReportedAt(r.getReportedAt());
+                                    r.getCategories().forEach(rs.getCategories()::add);
+                                });
+                    });
                     data.setEnrichmentStatus(EnrichmentStatus.ENRICHED);
                     access.setAbuseIPDBData(data);
                     return access;
                 })
-                .doOnNext(a -> {
-                    a.getAbuseIPDBData().getReports()
-                            .forEach(reportLocationProcessor::publish);
-                })
+                .doOnNext(a -> a.getAbuseIPDBData().getReports().forEach(reportLocationProcessor::publish))
                 .flatMap(repository::updateAbuseIPDB);
     }
 }

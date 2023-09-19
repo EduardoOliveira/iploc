@@ -1,6 +1,6 @@
 package eu.knoker.iploc.services.nominatim.jsonviews;
 
-public class LocationView {
+public class LocationViews {
     public interface Base{}
     public interface Point extends Base{}
     public interface Geometry extends Base{}
